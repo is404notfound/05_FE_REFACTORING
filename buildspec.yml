@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - echo ========== NODE $(node -v) / NPM $(npm -v) ==========
+      - echo '#!/bin/sh' > /usr/local/bin/ok; echo 'if [[ "$CODEBUILD_BUILD_SUCCEEDING" == "0" ]]; then exit 1; else exit 0; fi' >> /usr/local/bin/ok; chmod +x /usr/local/bin/ok
+  pre_build:
+    commands:
+      - npm cache clean --force
+      - npm install
+  build:
+    commands:
+      - npm run build:dev
+  post_build:
+    commands:
+      - ok && echo Build completed on `date`
+      - ls -l ./dist
+      - aws s3 sync --cache-control max-age=3600 --exclude=index.html ./dist/ s3://wsin-catalog-admin-front.dev/
+      - aws s3 sync --cache-control max-age=0 --include=index.html ./dist/ s3://wsin-catalog-admin-front.dev/
+      - aws s3 sync --cache-control max-age=0 --include=service-worker.js ./dist/ s3://wsin-catalog-admin-front.dev/
