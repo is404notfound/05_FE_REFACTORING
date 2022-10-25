@@ -94,11 +94,13 @@
 </template>
 
 <script lang="ts">
-import { makeBrandTypeEditColumns } from '@/constants/manufacture/columns';
 import SortingTable from '@/components/filter/func/SortingTable.vue';
-import { ref, computed, onMounted } from '@vue/composition-api';
-import { useGenericStore } from '@/composition/useStore';
 import useDialog from '@/composition/useDialog';
+import { useGenericStore } from '@/composition/useStore';
+import { makeBrandTypeEditColumns } from '@/constants/manufacture/columns';
+import { IManufactureBrandType } from '@/store/modules/manufacture/interfaces/IManagement';
+import { TNullable } from '@/types';
+import { computed, ComputedRef, onMounted, ref } from '@vue/composition-api';
 import { cloneDeep, differenceWith, isEqual } from 'lodash';
 
 export default {
@@ -109,14 +111,14 @@ export default {
   setup(_props, { root }) {
     const { alert } = useDialog();
     const { state, dispatch: manufactureDispatch } = useGenericStore('manufacture', 'management');
-    const manufactureBrandTypes = cloneDeep(computed(()=> state('manufactureBrandTypes')));
-    const originManufactureBrandTypes = cloneDeep(manufactureBrandTypes.value);
+    const manufactureBrandTypes: ComputedRef<IManufactureBrandType[]> = cloneDeep(computed(()=> state('manufactureBrandTypes')));
+    const originManufactureBrandTypes: IManufactureBrandType[] = cloneDeep(manufactureBrandTypes.value);
     const brandTypesTableData = ref({
       columns: makeBrandTypeEditColumns(),
-      data: manufactureBrandTypes.value as any[], // TODO :: ADD TS
+      data: manufactureBrandTypes.value as IManufactureBrandType[],
     });
-    const brandTypeInput = ref(null);
-    const deleteFlags = [];
+    const brandTypeInput: ComputedRef<TNullable<any>> = ref(null);
+    const deleteFlags: number[] = [];
     const showNotify = ({ notify = 'error', message = '취소되었습니다.' })=> root.$events.$emit('SHOW_NOTIFY', { type: notify, message, timeout: 500 });
 
     onMounted(()=> root.$nextTick(()=> brandTypeInput.value.blur()));
@@ -196,7 +198,7 @@ export default {
     return {
       onRowAdd() {
         const { data } = brandTypesTableData.value;
-        const initialRow = {
+        const initialRow: IManufactureBrandType = {
           sequence: makeSequence(),
           name: null,
           id: null,
@@ -233,5 +235,3 @@ export default {
   },
 };
 </script>
-<style scoped lang="scss">
-</style>
